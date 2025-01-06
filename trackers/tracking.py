@@ -5,6 +5,7 @@ import os
 import sys
 import cv2
 import numpy as np
+import pandas as pd
 sys.path.append('../')
 from utils import get_bbox_width, get_center_of_bbox
 
@@ -12,6 +13,18 @@ class Tracker:
     def __init__(self, model_path):
         self.model = YOLO(model_path)
         self.tracker = sv.ByteTrack()
+
+    def interpolate_ball_positions(self, ball_positions):
+        ball_positions = [x.get(1, {}).get('bbox', []) for x in ball_positions]
+        df_ball_positions = pd.DataFrame(ball_positions, columns=['x1', 'x2', 'y1', 'y2'])
+
+        # Interpolate missing values
+        df_ball_positions = df_ball_positions.interpolate()
+        df_ball_positions = df_ball_positions.bfill()
+
+        ball_positions = [{1:{"bbox":x}} for x in df_ball_positions.to_numpy().tolist()]
+
+        return ball_positions
 
     def detect_frames(self, frames):
         batch_size=20 
@@ -152,7 +165,7 @@ class Tracker:
 
             #Draw Players
             for track_id, player in player_dict.items():
-                color = player.get("team_color", (0, 255, 0))
+                color = player.get("color", (255, 255, 0))
                 frame = self.draw_ellipse(frame, player["bbox"], color, track_id)
 
             #Draw Referree
