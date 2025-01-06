@@ -199,7 +199,7 @@ class Tracker:
 
             #Draw Players
             for track_id, player in player_dict.items():
-                color = player.get("color", (255, 255, 0))
+                color = player.get("color", (0, 255, 0))
                 frame = self.draw_ellipse(frame, player["bbox"], color, track_id)
                 
                 if player.get('has_ball', False):
