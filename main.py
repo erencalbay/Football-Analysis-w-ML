@@ -2,6 +2,7 @@ from utils import read_video, save_video
 from trackers import Tracker
 from team_assigner import TeamAssigner
 import cv2
+from player_ball_assigner import PlayerBallAssigner
 
 def main():
     #Read Video
@@ -32,19 +33,17 @@ def main():
 
             tracks['players'][frame_num][player_id]['team'] = team
             tracks['players'][frame_num][player_id]['color'] = team_assigner.team_colors[team]
-
     
-    # save croppeed image of a player
-    for track_id, player in tracks['players'][0].items():
-        bbox = player['bbox']
-        frame = video_frames[0]
+    # Assign Ball Aqusition
 
-        # crop bbox from frame
-        cropped_frame = frame[int(bbox[1]):int(bbox[3]), int(bbox[0]):int(bbox[2])]
+    player_assigner = PlayerBallAssigner()
+    for frame_num, player_track in enumerate(tracks['players']):
+        ball_box = tracks['ball'][frame_num][1]['bbox']
+        assigned_player = player_assigner.assign_ball_to_player(player_track, ball_box)
 
-        # save the cropped image
-        cv2.imwrite(f'output_videos/player.jpg', cropped_frame)
-        break
+        if assigned_player != -1:
+            tracks['players'][frame_num][assigned_player]['has_ball'] = True
+    
 
     
     #Draw Output
